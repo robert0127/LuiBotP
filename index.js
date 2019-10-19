@@ -8,6 +8,10 @@ client.on('ready', () => {
 var VCID = null;
 const fs = require('fs');
 
+const ytdl = require('ytdl-core');
+
+const queue = new Map();
+
 client.on('guildMemberAdd', member => {
 	const channel = member.guild.channels.find(ch => ch.name === '歡迎到步');
 	
@@ -16,12 +20,14 @@ client.on('guildMemberAdd', member => {
 	channel.send(`歡迎 ${member} 到步 :sunglasses: ！\n新丁請先去 `+member.guild.channels.get('630447413513158666').toString()+` 睇規則\n有咩嘢都可以係度同大家隨便講\n`+member.guild.roles.get('630442569008021505').toString()+` 會親自黎歡迎歡迎你 :heart: `);
 });
 
-client.on('message', message => {
+client.on('message', async message => {
 	
 	if (message.author.bot) return;
-
+    //if (!message.content.startsWith('..')) return;
+	
 	const args = message.content.slice(2).split(' ');
 	const command = args.shift().toLowerCase();
+	const serverQueue = queue.get(message.guild.id);
 	
 	if (message.content === '..ping') {
 		message.channel.send('pong');
@@ -138,11 +144,110 @@ client.on('message', message => {
 		
 	}
 	
+	
+
+	if (message.content.startsWith(`..play`)) {
+		execute(message, serverQueue);
+		return;
+	}
+	
+	if (message.content.startsWith(`..skip`)) {
+		skip(message, serverQueue);
+		return;
+	}
+	
+	if (message.content.startsWith(`..stop`)) {
+		stop(message, serverQueue);
+		return;
+	}
+	
 	if (message.content === ('..help')) {
 		message.channel.send(`>>> ..ping\n..test\n..meow\n..VCLink (presence in Voice Channel needed)\n..avatar [mention]\n..invite\n..role [* mention] [* role] (Admin power needed)\n..purgemsg [* number] (Admin power needed)\n。。。`);
 	}
 
 });
+
+async function execute(message, serverQueue) {
+	const args = message.content.split(' ');
+
+	const voiceChannel = message.member.voiceChannel;
+	if (!voiceChannel) return message.channel.send('You need to be in a voice channel to play music!');
+	const permissions = voiceChannel.permissionsFor(message.client.user);
+	if (!permissions.has('CONNECT') || !permissions.has('SPEAK')) {
+		return message.channel.send('I need the permissions to join and speak in your voice channel!');
+	}
+
+	const songInfo = await ytdl.getInfo(args[1]);
+	const song = {
+		title: songInfo.title,
+		url: songInfo.video_url,
+	};
+
+	if (!serverQueue) {
+		const queueContruct = {
+			textChannel: message.channel,
+			voiceChannel: voiceChannel,
+			connection: null,
+			songs: [],
+			volume: 5,
+			playing: true,
+		};
+
+		queue.set(message.guild.id, queueContruct);
+
+		queueContruct.songs.push(song);
+
+		try {
+			var connection = await voiceChannel.join();
+			queueContruct.connection = connection;
+			play(message.guild, queueContruct.songs[0]);
+		} catch (err) {
+			console.log(err);
+			queue.delete(message.guild.id);
+			return message.channel.send(err);
+		}
+	} else {
+		serverQueue.songs.push(song);
+		console.log(serverQueue.songs);
+		return message.channel.send(`${song.title} has been added to the queue!`);
+	}
+
+}
+
+function skip(message, serverQueue) {
+	if (!message.member.voiceChannel) return message.channel.send('You have to be in a voice channel to stop the music!');
+	if (!serverQueue) return message.channel.send('There is no song that I could skip!');
+	serverQueue.connection.dispatcher.end();
+}
+
+function stop(message, serverQueue) {
+	if (!message.member.voiceChannel) return message.channel.send('You have to be in a voice channel to stop the music!');
+	if (!serverQueue) return message.channel.send('I am not in a voice channel!');
+	serverQueue.songs = [];
+	serverQueue.connection.dispatcher.end();
+}
+
+function play(guild, song) {
+	const serverQueue = queue.get(guild.id);
+
+	if (!song) {
+		serverQueue.voiceChannel.leave();
+		queue.delete(guild.id);
+		return;
+	}
+
+	const dispatcher = serverQueue.connection.playStream(ytdl(song.url))
+		.on('end', () => {
+			console.log('Music ended!');
+			serverQueue.songs.shift();
+			play(guild, serverQueue.songs[0]);
+		})
+		.on('error', error => {
+			console.error(error);
+		});
+	dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
+}
+
 
 client.login('NTk1OTE3MjU2MzExOTYzNjQ4.XRx-WA.4EbhxbPaWXRCROMQ3yqqagzSah8');
 
