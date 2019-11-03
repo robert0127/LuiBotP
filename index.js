@@ -12,22 +12,39 @@ const ytdl = require('ytdl-core');
 
 const queue = new Map();
 
+//require('events').EventEmitter.prototype._maxListeners = 100;
+
 client.on('guildMemberAdd', member => {
-	const channel = member.guild.channels.find(ch => ch.name === '歡迎到步');
+	var channel = null;
+	if (member.guild.id === '630439871860965377') {
+		channel = member.guild.channels.find(ch => ch.id === '630441330094637067');
+		if (!channel) return;
+		channel.send(`歡迎 ${member} 到步 :sunglasses: ！\n新丁請先去 `+member.guild.channels.get('630447413513158666').toString()+` 睇規則\n有咩嘢都可以係度同大家隨便講\n`+member.guild.roles.get('630442569008021505').toString()+` 會親自黎歡迎歡迎你 :heart: `);
+	}
 	
-	if (!channel) return;
+	if (member.guild.id === '412993050781024256') {
+		channel = member.guild.channels.find(ch => ch.id === '557211121514446879');
+		if (!channel) return;
+		channel.send(`歡迎 ${member} 到步\n呢度唯一既規則就係無規則\n請先去 `+member.guild.channels.get('640503816437104641').toString()+` 睇注意事項\n有咩嘢都可以同大家隨便講 :wink: \n我地既`+ member.guild.roles.get('568108422525091845').toString()+` 會親自黎歡迎歡迎你 :heart: `);
+		
+		const role = member.guild.roles.find(r => r.name === `Ping Me!`);
+		if (role)
+			member.addRole(role);
+	}
 	
-	channel.send(`歡迎 ${member} 到步 :sunglasses: ！\n新丁請先去 `+member.guild.channels.get('630447413513158666').toString()+` 睇規則\n有咩嘢都可以係度同大家隨便講\n`+member.guild.roles.get('630442569008021505').toString()+` 會親自黎歡迎歡迎你 :heart: `);
+	
 });
 
 client.on('message', async message => {
 	
 	if (message.author.bot) return;
     //if (!message.content.startsWith('..')) return;
-	
+
 	const args = message.content.slice(2).split(' ');
 	const command = args.shift().toLowerCase();
 	const serverQueue = queue.get(message.guild.id);
+	
+	//===Debug===
 	
 	if (message.content === '..ping') {
 		message.channel.send('pong');
@@ -55,6 +72,8 @@ client.on('message', async message => {
                     }, 3000);
                 });
 	}*/
+	
+	//===Global commands===
 	
 	if (message.content.startsWith('..avatar')) {
 		if (args[0]) {
@@ -144,7 +163,7 @@ client.on('message', async message => {
 		
 	}
 	
-	
+	//===Music===
 
 	if (message.content.startsWith(`..play`)) {
 		execute(message, serverQueue);
@@ -161,11 +180,89 @@ client.on('message', async message => {
 		return;
 	}
 	
+	//===server exclusive===
+	
+	if (message.content === (`..pingme`||`..Pingme`||`..pingMe`||`..PingMe`)) {
+		if (message.member.guild.id === '412993050781024256') {
+			message.channel.send(`Testing line`);
+			var memberRole = message.member.roles.find(x => x.name === "Ping Me!");
+			if (memberRole) {
+				message.channel.send(`Testing line1`);
+				message.channel.send(`You already have the "Ping Me!" role!`)
+				.then((message2) => {
+                    setTimeout(() => {
+                        message.delete();
+                        message2.delete();
+                    }, 5000);
+                });
+			} else {
+				message.channel.send(`Testing line2`);
+				const role = message.member.guild.roles.find(r => r.name === "Ping Me!");
+				message.member.addRole(role);
+				message.channel.send(`Role added! Now you will receive pings when someone "@Ping me!"!`)
+				.then((message2) => {
+                    setTimeout(() => {
+                        message.delete();
+                        message2.delete();
+                    }, 5000);
+                });
+			}
+		}
+	}
+	
+	if (message.content === (`..muteme`||`..Muteme`||`..muteMe`||`..MuteMe`)) {
+		if (message.member.guild.id === '412993050781024256') {
+			var memberRole = message.member.roles.find(x => x.name === "Ping Me!");
+			if (memberRole) {
+				message.member.removeRole(memberRole);
+				message.channel.send(`Role removed! Now you won't get pinged ;)`)
+				.then((message2) => {
+                    setTimeout(() => {
+                        message.delete();
+                        message2.delete();
+                    }, 5000);
+                });
+			} else {
+				message.channel.send(`You don't have the "Ping Me!" role!`)
+				.then((message2) => {
+                    setTimeout(() => {
+                        message.delete();
+                        message2.delete();
+                    }, 5000);
+                });
+			}
+		}
+	}
+	
+	
+	
+	if (message.content === (`..givePingToAll`)) {
+		
+		message.channel.send(`This command is disabled`);
+		return;
+		
+		if (message.member.guild.id === '412993050781024256') {
+			const role = message.guild.roles.find(r => r.name == 'Ping Me!')
+
+			if (!role) return message.channel.send(`**${message.author.username}**, role not found`)
+
+			message.guild.members.filter(m => !m.user.bot).forEach(member => member.addRole(role))
+			message.channel.send(`**${message.author.username}**, role **${role.name}** was added to all members`)
+		}
+	}
+		 
+			
+	
+	//===help===
+	
 	if (message.content === ('..help')) {
 		message.channel.send(`>>> ..ping\n..test\n..meow\n..VCLink (presence in Voice Channel needed)\n..avatar [mention]\n..invite\n..role [* mention] [* role] (Admin power needed)\n..purgemsg [* number] (Admin power needed)\n。。。`);
 	}
 
 });
+
+
+//===music functions===
 
 async function execute(message, serverQueue) {
 	const args = message.content.split(' ');
@@ -248,6 +345,7 @@ function play(guild, song) {
 	dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
 }
 
+//===token===
 
 client.login('NTk1OTE3MjU2MzExOTYzNjQ4.XRx-WA.4EbhxbPaWXRCROMQ3yqqagzSah8');
 
