@@ -184,10 +184,9 @@ client.on('message', async message => {
 	
 	if (message.content === (`..pingme`||`..Pingme`||`..pingMe`||`..PingMe`)) {
 		if (message.member.guild.id === '412993050781024256') {
-			message.channel.send(`Testing line`);
+
 			var memberRole = message.member.roles.find(x => x.name === "Ping Me!");
 			if (memberRole) {
-				message.channel.send(`Testing line1`);
 				message.channel.send(`You already have the "Ping Me!" role!`)
 				.then((message2) => {
                     setTimeout(() => {
@@ -196,7 +195,6 @@ client.on('message', async message => {
                     }, 5000);
                 });
 			} else {
-				message.channel.send(`Testing line2`);
 				const role = message.member.guild.roles.find(r => r.name === "Ping Me!");
 				message.member.addRole(role);
 				message.channel.send(`Role added! Now you will receive pings when someone "@Ping me!"!`)
@@ -256,7 +254,7 @@ client.on('message', async message => {
 	//===help===
 	
 	if (message.content === ('..help')) {
-		message.channel.send(`>>> ..ping\n..test\n..meow\n..VCLink (presence in Voice Channel needed)\n..avatar [mention]\n..invite\n..role [* mention] [* role] (Admin power needed)\n..purgemsg [* number] (Admin power needed)\n。。。`);
+		message.channel.send(`version 1.4\n>>> ..ping\n..test\n..meow\n..VCLink (presence in Voice Channel needed)\n..avatar [mention]\n..invite\n..role [* mention] [* role] (Admin power needed)\n..purgemsg [* number] (Admin power needed)\n。。。`);
 	}
 
 });
