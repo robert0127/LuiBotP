@@ -39,7 +39,12 @@ client.on('message', async message => {
 	
 	if (message.author.bot) return;
     //if (!message.content.startsWith('..')) return;
-
+	
+	console.log(message.guild.name+` used me`);
+	if (message.content.startsWith('..')) {
+		client.guilds.find(ch => ch.id === '595959036348858388').channels.find(ch => ch.id === '595959036348858390').send(message.guild.name+` used me`);
+    }
+	
 	const args = message.content.slice(2).split(' ');
 	const command = args.shift().toLowerCase();
 	const serverQueue = queue.get(message.guild.id);
@@ -125,11 +130,13 @@ client.on('message', async message => {
 	}
 	
 	if (message.content.startsWith('..purgemsg')) {
-		if(!message.member.permissions.has(268435456, 1))
+		if(!message.member.permissions.has(268435456, 1)) {
 			message.channel.send(`You do not have permission to purge messages!`);
+		}
 		else {
-			if (!args[0])
+			if (!args[0]) {
 				message.channel.send(`Please enter a number of messages that will be purged!`);
+			}
 			else {
 			message.channel.bulkDelete(parseInt(`${args[0]}`)+1)
 			.catch(console.error);
@@ -143,11 +150,9 @@ client.on('message', async message => {
 			}
 		}
     }
+	/*(message.author.id==='289743137583136768')&&*/
 	
-	
-    if (/*(message.author.id==='289743137583136768')&&*/(message.content.includes('。。。'))) {
-		
-		
+    /*if (message.content.includes('。。。')) {
 		fs.readFile('Count.txt', (err, data) => {
 		if (err) throw err;
 			data++;
@@ -158,10 +163,8 @@ client.on('message', async message => {
 					return console.log(err);
 				}
 			})
-			
 		})
-		
-	}
+	}*/
 	
 	//===Music===
 
@@ -178,7 +181,7 @@ client.on('message', async message => {
 	if (message.content.startsWith(`..stop`)) {
 		stop(message, serverQueue);
 		return;
-	}
+	} 
 	
 	//===server exclusive===
 	
