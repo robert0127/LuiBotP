@@ -167,7 +167,7 @@ client.on('message', async message => {
 	}*/
 	
 	//===Music===
-
+/*
 	if (message.content.startsWith(`..play`)) {
 		execute(message, serverQueue);
 		return;
@@ -182,7 +182,7 @@ client.on('message', async message => {
 		stop(message, serverQueue);
 		return;
 	} 
-	
+*/
 	//===server exclusive===
 	
 	if (message.content === (`..pingme`||`..Pingme`||`..pingMe`||`..PingMe`)) {
@@ -264,7 +264,7 @@ client.on('message', async message => {
 
 
 //===music functions===
-
+/*
 async function execute(message, serverQueue) {
 	const args = message.content.split(' ');
 
@@ -345,7 +345,7 @@ function play(guild, song) {
 		});
 	dispatcher.setVolumeLogarithmic(serverQueue.volume / 5);
 }
-
+*/
 //===token===
 
 client.login('//');
